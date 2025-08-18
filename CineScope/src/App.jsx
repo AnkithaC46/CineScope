@@ -1,35 +1,75 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import Navbar from "./components/Navbar";
+import Movies from "./components/Movies";
+import Watchlist from "./components/Watchlist";
+import "./App.css";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Banner from "./components/Banner";
+import axios from "axios";
 
 function App() {
-  const [count, setCount] = useState(0)
+  let [watchlist, setWatchlist] = useState([]);
+
+  let handleWatchlist = async (movie) => {
+    if (watchlist.some((m) => m.imdbID === movie.imdbID)) return;
+    const res = await axios.get(
+      `http://www.omdbapi.com/?apikey=2b3a0a45&i=${movie.imdbID}`
+    );
+    let detailedMovie = res.data;
+
+    let newwatchList = [...watchlist, detailedMovie];
+    localStorage.setItem("moviesapp", JSON.stringify(newwatchList));
+    setWatchlist(newwatchList);
+    console.log(newwatchList);
+  };
+
+  let removeFromWatchlist = (movie) => {
+    let newWatchlist = watchlist.filter((m) => m.imdbID !== movie.imdbID);
+    localStorage.removeItem("moviesapp", JSON.stringify(newWatchlist));
+    setWatchlist(newWatchlist);
+  };
+
+  useEffect(()=>{
+    let storedWatchlist = localStorage.getItem("moviesapp");
+    if (storedWatchlist) {
+      setWatchlist(JSON.parse(storedWatchlist));
+    }
+
+  },[]);
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <BrowserRouter>
+        <Navbar />
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <>
+                {" "}
+                <Banner />{" "}
+                <Movies
+                  handleWatchlist={handleWatchlist}
+                  watchlist={watchlist}
+                  removeFromWatchlist={removeFromWatchlist}
+                />
+              </>
+            }
+          />
+          <Route
+            path="/watchlist"
+            element={
+              <Watchlist
+                watchlist={watchlist}
+                removeFromWatchlist={removeFromWatchlist}
+                setWatchlist={setWatchlist}
+              />
+            }
+          />
+        </Routes>
+      </BrowserRouter>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
