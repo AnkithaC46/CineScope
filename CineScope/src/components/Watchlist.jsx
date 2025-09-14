@@ -11,14 +11,6 @@ function Watchlist({ watchlist, removeFromWatchlist, setWatchlist }) {
 
   let handleFilter = (gen) => {
     setSelectedGenre(gen);
-    if (gen === "All Genres") {
-      setWatchlist(JSON.parse(localStorage.getItem("moviesapp")));
-    } else {
-      const filteredMovies = watchlist.filter((movie) =>
-        movie.Genre.split(",")[0].includes(gen)
-      );
-      setWatchlist(filteredMovies);
-    }
   };
 
   let sortIncreasing = () => {
@@ -92,7 +84,9 @@ function Watchlist({ watchlist, removeFromWatchlist, setWatchlist }) {
             </tr>
           </thead>
 
-          {watchlist
+          {watchlist.filter((movie) => {
+           return selectedGenre === "All Genres" || movie.Genre.split(",")[0] === selectedGenre;
+          })
             .filter((movie) => {
               return movie.Title.toLowerCase().includes(search.toLowerCase());
             })
